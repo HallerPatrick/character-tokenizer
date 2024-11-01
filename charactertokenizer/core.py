@@ -138,14 +138,25 @@ class CharacterTokenizer(PreTrainedTokenizer):
         return cls(**cfg)
 
     def save_pretrained(self, save_directory: Union[str, os.PathLike], **kwargs):
-        cfg_file = Path(save_directory) / "tokenizer_config.json"
+        save_directory = Path(save_directory)
+
+        if not save_directory.is_dir():
+            save_directory.mkdir(parents=True)
+
+        cfg_file = save_directory / "tokenizer_config.json"
         cfg = self.get_config()
+
         with open(cfg_file, "w") as f:
             json.dump(cfg, f, indent=4)
 
     @classmethod
     def from_pretrained(cls, save_directory: Union[str, os.PathLike], **kwargs):
         cfg_file = Path(save_directory) / "tokenizer_config.json"
+
+        if not cfg_file.is_file():
+            raise FileNotFoundError(f"Config file not found in {save_directory}")
+
         with open(cfg_file) as f:
             cfg = json.load(f)
+
         return cls.from_config(cfg)
